@@ -26,7 +26,7 @@ function Window({ videoUrl, isHost, roomId }) {
 
     if (Hls.isSupported()) {
       const hls = new Hls()
-      hls.loadSource(`${process.env.REACT_APP_SOCKET_URL}${videoUrl}`)
+      hls.loadSource(`${process.env.VITE_SOCKET_URL}${videoUrl}`)
       hls.attachMedia(video)
     }
 
