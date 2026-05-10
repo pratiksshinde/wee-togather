@@ -117,7 +117,7 @@ function Window({ videoUrl, isHost, roomId }) {
   return (
     <div
       ref={containerRef}
-      className="relative w-180 h-100 bg-black rounded-2xl overflow-hidden group"
+      className="relative w-full sm:w-5/6 md:w-3/4 lg:w-180 h-48 sm:h-64 md:h-80 lg:h-100 bg-black rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden group"
       onMouseMove={resetHideTimer}
       onMouseLeave={() => setShowControls(false)}
     >
@@ -129,7 +129,7 @@ function Window({ videoUrl, isHost, roomId }) {
       />
 
       {/* Controls overlay — fades in/out */}
-      <div className={`absolute bottom-0 left-0 right-0 px-4 pb-4 pt-10
+      <div className={`absolute bottom-0 left-0 right-0 px-2 sm:px-3 md:px-4 pb-2 sm:pb-3 md:pb-4 pt-6 sm:pt-8 md:pt-10
         bg-gradient-to-t from-black/90 to-transparent
         transition-opacity duration-300
         ${showControls ? "opacity-100" : "opacity-0"}`}
@@ -141,44 +141,44 @@ function Window({ videoUrl, isHost, roomId }) {
           value={progress}
           onChange={handleSeek}
           disabled={!isHost}
-          className={`w-full h-1 mb-3 rounded-full appearance-none outline-none
+          className={`w-full h-0.5 sm:h-1 mb-2 sm:mb-3 rounded-full appearance-none outline-none
             bg-white/20 accent-red-500
             ${isHost ? "cursor-pointer" : "cursor-default"}`}
         />
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-4 w-full sm:w-auto">
 
             {/* Play/Pause — host only */}
             <button
               onClick={togglePlay}
               disabled={!isHost}
-              className={`text-white text-2xl transition
+              className={`text-white text-lg sm:text-xl md:text-2xl transition flex-shrink-0
                 ${isHost ? "hover:text-red-400 cursor-pointer" : "opacity-30 cursor-default"}`}
             >
               {playing ? <BsPauseFill /> : <BsFillPlayFill />}
             </button>
 
             {/* Volume — everyone */}
-            <button onClick={toggleMute} className="text-white text-xl hover:text-red-400 cursor-pointer">
+            <button onClick={toggleMute} className="text-white text-base sm:text-lg md:text-xl hover:text-red-400 cursor-pointer flex-shrink-0">
               {muted || volume === 0 ? <BsVolumeMuteFill /> : <BsVolumeUpFill />}
             </button>
             <input
               type="range" min="0" max="1" step="0.05"
               value={muted ? 0 : volume}
               onChange={handleVolume}
-              className="w-20 accent-red-500 cursor-pointer"
+              className="w-12 sm:w-16 md:w-20 accent-red-500 cursor-pointer flex-shrink-0"
             />
 
             {/* Time */}
-            <span className="text-white/70 text-sm">
+            <span className="text-white/70 text-xs sm:text-sm md:text-base whitespace-nowrap">
               {fmt(videoRef.current?.currentTime)} / {fmt(duration)}
             </span>
 
           </div>
 
           {/* Fullscreen — everyone */}
-          <button onClick={toggleFullscreen} className="text-white text-xl hover:text-red-400 cursor-pointer">
+          <button onClick={toggleFullscreen} className="text-white text-base sm:text-lg md:text-xl hover:text-red-400 cursor-pointer flex-shrink-0">
             {fullscreen ? <BsFullscreenExit /> : <BsFullscreen />}
           </button>
         </div>

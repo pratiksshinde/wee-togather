@@ -46,14 +46,14 @@ function Home() {
      
 
       <div className="flex flex-col justify-center items-center min-h-screen">
-        <div className="p-8 -mt-98 w-180 flex flex-col justify-center items-center text-center">
-            <h1 className='text-white bold text-6xl'>
+        <div className="p-4 sm:p-6 md:p-8 -mt-32 sm:-mt-48 md:-mt-98 w-full sm:w-3/4 md:w-180 px-4 sm:px-6 flex flex-col justify-center items-center text-center">
+            <h1 className='text-white bold text-2xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight'>
                 Create a Room. Start Watching Together.
             </h1>
-            <p className="text-gray-300 text-lg mt-5 text-center max-w-lg">
+            <p className="text-gray-300 text-xs sm:text-sm md:text-base lg:text-lg mt-3 sm:mt-4 md:mt-5 text-center max-w-xs sm:max-w-sm md:max-w-lg">
             Create private streaming rooms and enjoy movies in perfect sync with friends in real time.
             </p>
-            <div className="flex gap-4 mt-14">
+            <div className="flex gap-2 sm:gap-3 md:gap-4 mt-8 sm:mt-10 md:mt-14">
 
             {code.map((digit, index) => (
 
@@ -69,13 +69,13 @@ function Home() {
                 onKeyDown={(e) =>
                     handleKeyDown(e, index)
                 }
-                className="w-16 h-18 cursor-pointer rounded-2xl bg-white/10 border border-red-500/40 text-white text-3xl text-center outline-none backdrop-blur-md focus:border-red-500 focus:shadow-[0_0_20px_rgba(255,0,0,0.8)] transition-all"
+                className="w-10 sm:w-12 md:w-16 h-12 sm:h-14 md:h-18 cursor-pointer rounded-2xl bg-white/10 border border-red-500/40 text-white text-lg sm:text-2xl md:text-3xl text-center outline-none backdrop-blur-md focus:border-red-500 focus:shadow-[0_0_20px_rgba(255,0,0,0.8)] transition-all"
                 />
             ))}
 
             </div>
         </div>
-      <div className="absolute bottom-0 left-0 w-full self-end h-40 border-t-4 border-red-500 bg-transparent rounded-t-[50%] shadow-[0_-15px_50px_rgba(255,0,0,0.9)] bg-black">
+      <div className="absolute bottom-0 left-0 w-full self-end h-20 sm:h-28 md:h-40 border-t-4 border-red-500 bg-transparent rounded-t-[50%] shadow-[0_-15px_50px_rgba(255,0,0,0.9)] bg-black">
 </div>
       </div>
     </div>

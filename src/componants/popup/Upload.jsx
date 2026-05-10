@@ -52,32 +52,32 @@ function Upload({ roomId, onReady }) {
   }, [iAmUploading]) // ← iAmUploading in deps so closure gets latest value
 
   return (
-    <div className="flex flex-col items-center gap-6 text-white">
-      <h2 className="text-2xl font-bold text-white">Upload a Movie</h2>
-      <p className="text-gray-400 text-sm">Others will join once video is ready</p>
+    <div className="flex flex-col items-center gap-3 sm:gap-4 md:gap-6 text-white w-full px-4">
+      <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white text-center">Upload a Movie</h2>
+      <p className="text-gray-400 text-xs sm:text-sm text-center">Others will join once video is ready</p>
 
       {status === "idle" && (
-        <label className="cursor-pointer px-10 py-5 rounded-2xl border border-red-500/30 bg-white/5 hover:border-red-500 transition-all text-lg">
+        <label className="cursor-pointer px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 rounded-2xl border border-red-500/30 bg-white/5 hover:border-red-500 transition-all text-sm sm:text-base md:text-lg text-white text-center">
           Choose Movie File
           <input type="file" accept="video/*" className="hidden" onChange={handleFileChange} />
         </label>
       )}
 
       {(status === "uploading" || status === "processing") && (
-        <div className="flex flex-col items-center gap-3 w-80">
-          <p className="text-gray-400">
+        <div className="flex flex-col items-center gap-2 sm:gap-3 w-full max-w-xs sm:max-w-sm md:w-80">
+          <p className="text-gray-400 text-xs sm:text-sm md:text-base text-center">
             {status === "uploading" ? `⬆️ Uploading... ${progress}%` : `⚙️ Processing... ${progress}%`}
           </p>
-          <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
+          <div className="w-full h-2 sm:h-3 bg-white/10 rounded-full overflow-hidden">
             <div
-              className={`h-3 rounded-full transition-all duration-300 ${status === "uploading" ? "bg-red-500" : "bg-yellow-500"}`}
+              className={`h-2 sm:h-3 rounded-full transition-all duration-300 ${status === "uploading" ? "bg-red-500" : "bg-yellow-500"}`}
               style={{ width: `${progress}%` }}
             />
           </div>
         </div>
       )}
 
-      {status === "ready" && <p className="text-green-400 text-xl">✅ Video ready!</p>}
+      {status === "ready" && <p className="text-green-400 text-base sm:text-lg md:text-xl text-center">✅ Video ready!</p>}
     </div>
   )
 }
