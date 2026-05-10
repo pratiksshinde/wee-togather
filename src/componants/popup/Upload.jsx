@@ -28,7 +28,7 @@ function Upload({ roomId, onReady }) {
     formData.append("totalChunks", totalChunks)
     formData.append("fileExt", fileExt) // ← send this so server knows MKV vs MP4
 
-    await fetch("http://localhost:3000/upload-chunk", { method: "POST", body: formData })
+    await fetch(`${process.env.REACT_APP_SOCKET_URL}/upload-chunk`, { method: "POST", body: formData })
     setProgress(Math.round(((i + 1) / totalChunks) * 100))
   }
 
