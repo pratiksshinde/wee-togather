@@ -1,9 +1,9 @@
 import { io } from "socket.io-client";
 
-export const socket = io(process.env.VITE_SOCKET_URL, {
+export const socket = io(import.meta.env.VITE_SOCKET_URL, {
   withCredentials: true,
 });
-console.log("🔌 Attempting to connect to socket server at:", process.env.VITE_SOCKET_URL);
+console.log("🔌 Attempting to connect to socket server at:", import.meta.env.VITE_SOCKET_URL);
 socket.on("connect", () => {
   console.log("🔌 Socket connected to server:", socket.id);
 });

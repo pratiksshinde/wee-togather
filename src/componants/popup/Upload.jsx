@@ -28,7 +28,7 @@ function Upload({ roomId, onReady }) {
     formData.append("totalChunks", totalChunks)
     formData.append("fileExt", fileExt) // ← send this so server knows MKV vs MP4
 
-    await fetch(`${process.env.VITE_SOCKET_URL}/upload-chunk`, { method: "POST", body: formData })
+    await fetch(`${import.meta.env.VITE_SOCKET_URL}/upload-chunk`, { method: "POST", body: formData })
       .then(response => {
         if (!response.ok) {
           console.error(`Upload failed for chunk ${i}:`, response.status, response.statusText);
