@@ -13,7 +13,7 @@ function Navbar({onJoinClick}) {
     }
   return (
         <nav className="navbar h-16 sm:h-20 md:h-26 bg-black/50 text-red-500 flex items-center justify-between px-4 sm:px-8 md:px-24">
-            <img src={logo} height="40" alt="Logo" className="h-8 sm:h-10 md:h-12 w-fit" /> 
+            <img src={logo} height="40" alt="Logo" className="h-10 sm:h-12 md:h-14 lg:h-16 w-fit" /> 
             <ul className="flex space-x-2 sm:space-x-3 md:space-x-4">
                 
                 <span className={`flex gap-1 sm:gap-2 rounded-full items-center`}>

@@ -31,14 +31,15 @@ function Profile_Form({ code, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 sm:p-6">
-      <button
-        onClick={onClose}
-        className="absolute top-4 sm:top-6 right-4 sm:right-6 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-red-500/30 bg-black/80 text-gray-400 backdrop-blur-xl transition-all hover:border-red-500 hover:text-white hover:shadow-[0_0_20px_rgba(255,0,0,0.4)] cursor-pointer z-10"
-      >
-        <IoClose className="text-lg sm:text-xl" />
-      </button>
+      <div className="relative w-full sm:w-5/6 md:w-[600px] lg:w-[650px]">
+        <button
+          onClick={onClose}
+          className="absolute -top-12 sm:-top-14 md:-top-16 right-0 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-red-500/30 bg-black/80 text-gray-400 backdrop-blur-xl transition-all hover:border-red-500 hover:text-white hover:shadow-[0_0_20px_rgba(255,0,0,0.4)] cursor-pointer z-10"
+        >
+          <IoClose className="text-lg sm:text-xl" />
+        </button>
 
-      <div className="w-full sm:w-5/6 md:w-[600px] lg:w-[650px] max-h-[90vh] overflow-y-auto overflow-hidden rounded-2xl sm:rounded-3xl md:rounded-[35px] border border-red-500/30 bg-black/80 shadow-[0_0_60px_rgba(255,0,0,0.25)] backdrop-blur-xl relative">
+        <div className="w-full max-h-[90vh] overflow-y-auto overflow-hidden rounded-2xl sm:rounded-3xl md:rounded-[35px] border border-red-500/30 bg-black/80 shadow-[0_0_60px_rgba(255,0,0,0.25)] backdrop-blur-xl relative">
 
         <div className="absolute -top-24 sm:-top-28 md:-top-39 left-1/2 h-20 sm:h-24 md:h-32 w-[120%] -translate-x-1/2 rounded-full border-t-4 border-red-500 shadow-[0_-10px_60px_rgba(255,0,0,0.8)]"></div>
 
@@ -99,6 +100,7 @@ function Profile_Form({ code, onClose }) {
           </button>
 
         </div>
+      </div>
       </div>
     </div>
   )
