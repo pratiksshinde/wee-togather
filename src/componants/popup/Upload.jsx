@@ -29,6 +29,17 @@ function Upload({ roomId, onReady }) {
     formData.append("fileExt", fileExt) // ← send this so server knows MKV vs MP4
 
     await fetch(`${process.env.REACT_APP_SOCKET_URL}/upload-chunk`, { method: "POST", body: formData })
+      .then(response => {
+        if (!response.ok) {
+          console.error(`Upload failed for chunk ${i}:`, response.status, response.statusText);
+          throw new Error(`HTTP ${response.status}`);
+        }
+        return response.json();
+      })
+      .catch(error => {
+        console.error(`Upload error for chunk ${i}:`, error);
+        throw error;
+      });
     setProgress(Math.round(((i + 1) / totalChunks) * 100))
   }
 
