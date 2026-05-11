@@ -87,6 +87,7 @@ function Upload({ roomId, onReady }) {
           </div>
         </div>
       )}
+      {/* // ✅ Show ready status to everyone, but only uploader becomes host */}
 
       {status === "ready" && <p className="text-green-400 text-base sm:text-lg md:text-xl text-center">✅ Video ready!</p>}
     </div>
