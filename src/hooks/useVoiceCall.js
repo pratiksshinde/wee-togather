@@ -1,35 +1,46 @@
 import { useEffect, useRef, useState } from "react";
 import { socket } from "../socket";
 
-// ── No hardcoded ICE config here anymore ──────────────────────────────
-// Fetched from /ice-servers so credentials stay on the server.
-
 export function useVoiceCall(roomId) {
   const [micOn, setMicOn]           = useState(true);
   const [mutedPeers, setMutedPeers] = useState({});
 
-  const localStream   = useRef(null);
-  const peers         = useRef({});
-  const audioEls      = useRef({});
-  const streamReady   = useRef(false);
-  const pendingOffers = useRef([]);
-  const iceConfig     = useRef(null);          // ← fetched once, reused
+  const localStream      = useRef(null);
+  const peers            = useRef({});
+  const audioEls         = useRef({});
+  const streamReady      = useRef(false);
+  const pendingOffers    = useRef([]);
+  const iceConfig        = useRef(null);
+  const iceConfigReady   = useRef(false);
+  const pendingPeerCalls = useRef([]); // { userId } waiting for ICE config
 
   // ── 0. Fetch ICE config (STUN + TURN) from your server ───────────────
   useEffect(() => {
     if (!roomId) return;
+
     fetch(`${import.meta.env.VITE_SOCKET_URL}/ice-servers`)
       .then((r) => r.json())
       .then((servers) => {
-        iceConfig.current = { iceServers: servers };
+        iceConfig.current      = { iceServers: servers };
+        iceConfigReady.current = true;
         console.log("✅ ICE servers loaded:", servers.map((s) => s.urls));
+
+        // Flush any peers that tried to connect before ICE config was ready
+        pendingPeerCalls.current.forEach(({ userId }) => {
+          _createOfferForPeer(userId);
+        });
+        pendingPeerCalls.current = [];
       })
       .catch(() => {
-        // Fallback to STUN-only if fetch fails (same-network will still work)
         console.warn("⚠️ Could not fetch ICE servers, falling back to STUN only");
-        iceConfig.current = {
-          iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-        };
+        iceConfig.current      = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+        iceConfigReady.current = true;
+
+        // Still flush pending peers even on fallback
+        pendingPeerCalls.current.forEach(({ userId }) => {
+          _createOfferForPeer(userId);
+        });
+        pendingPeerCalls.current = [];
       });
   }, [roomId]);
 
@@ -43,6 +54,7 @@ export function useVoiceCall(roomId) {
         localStream.current = stream;
         streamReady.current = true;
 
+        // Add track to any peers already created
         Object.values(peers.current).forEach((pc) => {
           stream.getTracks().forEach((track) => {
             const alreadyAdded = pc.getSenders().some((s) => s.track === track);
@@ -50,6 +62,7 @@ export function useVoiceCall(roomId) {
           });
         });
 
+        // Handle offers that arrived before mic was ready
         pendingOffers.current.forEach(({ from, offer }) => _handleOffer(from, offer));
         pendingOffers.current = [];
       })
@@ -68,11 +81,13 @@ export function useVoiceCall(roomId) {
   useEffect(() => {
     if (!roomId) return;
 
-    const onUserJoined = async ({ userId }) => {
-      const pc    = _getOrCreatePeer(userId);
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      socket.emit("rtc-offer", { to: userId, offer });
+    const onUserJoined = ({ userId }) => {
+      // If ICE config hasn't loaded yet, queue this peer and handle it once ready
+      if (!iceConfigReady.current) {
+        pendingPeerCalls.current.push({ userId });
+        return;
+      }
+      _createOfferForPeer(userId);
     };
 
     const onOffer = ({ from, offer }) => {
@@ -125,6 +140,15 @@ export function useVoiceCall(roomId) {
   }, [roomId]);
 
   // ── Helpers ───────────────────────────────────────────────────────────
+
+  // Separated into its own function so both onUserJoined and the flush loop can call it
+  const _createOfferForPeer = async (userId) => {
+    const pc    = _getOrCreatePeer(userId);
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    socket.emit("rtc-offer", { to: userId, offer });
+  };
+
   const _handleOffer = async (from, offer) => {
     const pc = _getOrCreatePeer(from);
     await pc.setRemoteDescription(new RTCSessionDescription(offer));
@@ -136,7 +160,7 @@ export function useVoiceCall(roomId) {
   const _getOrCreatePeer = (remoteId) => {
     if (peers.current[remoteId]) return peers.current[remoteId];
 
-    // ── Use fetched ICE config (STUN + TURN), fall back if not ready yet ──
+    // ICE config is guaranteed ready here — either real TURN+STUN or STUN fallback
     const config = iceConfig.current ?? {
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     };
@@ -150,15 +174,18 @@ export function useVoiceCall(roomId) {
         .forEach((track) => pc.addTrack(track, localStream.current));
     }
 
-    // ── Optional: log ICE connection state for debugging ──────────────
+    // Log ICE state for debugging — "relay" candidates = TURN is working
     pc.oniceconnectionstatechange = () => {
       console.log(`ICE [${remoteId}]:`, pc.iceConnectionState);
-      // "connected" or "completed" = working
-      // "failed" = TURN isn't helping either (check credentials)
     };
 
     pc.onicecandidate = ({ candidate }) => {
-      if (candidate) socket.emit("rtc-ice", { to: remoteId, candidate });
+      if (candidate) {
+        console.log(`ICE candidate type for [${remoteId}]:`, candidate.type);
+        // If you see "relay" here across networks → TURN is working ✅
+        // If you only see "host" / "srflx" and call fails → TURN credentials issue
+        socket.emit("rtc-ice", { to: remoteId, candidate });
+      }
     };
 
     pc.ontrack = ({ streams: [stream] }) => {
