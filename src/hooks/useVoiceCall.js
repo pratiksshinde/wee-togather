@@ -1,22 +1,37 @@
 import { useEffect, useRef, useState } from "react";
 import { socket } from "../socket";
 
-const ICE_CONFIG = {
-  iceServers: [
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun1.l.google.com:19302" },
-  ],
-};
+// ── No hardcoded ICE config here anymore ──────────────────────────────
+// Fetched from /ice-servers so credentials stay on the server.
 
 export function useVoiceCall(roomId) {
   const [micOn, setMicOn]           = useState(true);
-  const [mutedPeers, setMutedPeers] = useState({}); // { [socketId]: bool }
+  const [mutedPeers, setMutedPeers] = useState({});
 
   const localStream   = useRef(null);
   const peers         = useRef({});
   const audioEls      = useRef({});
   const streamReady   = useRef(false);
   const pendingOffers = useRef([]);
+  const iceConfig     = useRef(null);          // ← fetched once, reused
+
+  // ── 0. Fetch ICE config (STUN + TURN) from your server ───────────────
+  useEffect(() => {
+    if (!roomId) return;
+    fetch(`${import.meta.env.VITE_SOCKET_URL}/ice-servers`)
+      .then((r) => r.json())
+      .then((servers) => {
+        iceConfig.current = { iceServers: servers };
+        console.log("✅ ICE servers loaded:", servers.map((s) => s.urls));
+      })
+      .catch(() => {
+        // Fallback to STUN-only if fetch fails (same-network will still work)
+        console.warn("⚠️ Could not fetch ICE servers, falling back to STUN only");
+        iceConfig.current = {
+          iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+        };
+      });
+  }, [roomId]);
 
   // ── 1. Get microphone ─────────────────────────────────────────────────
   useEffect(() => {
@@ -28,18 +43,13 @@ export function useVoiceCall(roomId) {
         localStream.current = stream;
         streamReady.current = true;
 
-        // ✅ FIX: if any peer connection was created before the mic was ready
-        // (getUserMedia is async, peers can arrive in the meantime),
-        // add the tracks now so those connections actually carry audio.
         Object.values(peers.current).forEach((pc) => {
           stream.getTracks().forEach((track) => {
-            // addTrack throws if the track is already added — guard it
             const alreadyAdded = pc.getSenders().some((s) => s.track === track);
             if (!alreadyAdded) pc.addTrack(track, stream);
           });
         });
 
-        // Drain offers that arrived before the mic was ready
         pendingOffers.current.forEach(({ from, offer }) => _handleOffer(from, offer));
         pendingOffers.current = [];
       })
@@ -126,16 +136,26 @@ export function useVoiceCall(roomId) {
   const _getOrCreatePeer = (remoteId) => {
     if (peers.current[remoteId]) return peers.current[remoteId];
 
-    const pc = new RTCPeerConnection(ICE_CONFIG);
+    // ── Use fetched ICE config (STUN + TURN), fall back if not ready yet ──
+    const config = iceConfig.current ?? {
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    };
+
+    const pc = new RTCPeerConnection(config);
     peers.current[remoteId] = pc;
 
-    // Add tracks if stream is already available; otherwise the getUserMedia
-    // .then() above will add them once it resolves.
     if (localStream.current) {
       localStream.current
         .getTracks()
         .forEach((track) => pc.addTrack(track, localStream.current));
     }
+
+    // ── Optional: log ICE connection state for debugging ──────────────
+    pc.oniceconnectionstatechange = () => {
+      console.log(`ICE [${remoteId}]:`, pc.iceConnectionState);
+      // "connected" or "completed" = working
+      // "failed" = TURN isn't helping either (check credentials)
+    };
 
     pc.onicecandidate = ({ candidate }) => {
       if (candidate) socket.emit("rtc-ice", { to: remoteId, candidate });
@@ -157,27 +177,16 @@ export function useVoiceCall(roomId) {
     return pc;
   };
 
-  // ── Public API ────────────────────────────────────────────────────────
-
-  /**
-   * Mute / unmute YOUR microphone.
-   * Sets track.enabled = false which makes the track send silence to all peers.
-   */
   const toggleMic = () => {
     const track = localStream.current?.getAudioTracks()[0];
     if (!track) {
-      console.warn("toggleMic: no audio track found — mic may still be loading");
+      console.warn("toggleMic: no audio track found");
       return;
     }
     track.enabled = !track.enabled;
     setMicOn(track.enabled);
   };
 
-  /**
-   * Mute / unmute a SPECIFIC peer's audio — local only.
-   * Sets audio.muted on their hidden <audio> element.
-   * The other person is unaware; everyone else still hears them.
-   */
   const togglePeerAudio = (userId) => {
     const audio = audioEls.current[userId];
     if (!audio) return;
