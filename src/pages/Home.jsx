@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react'
 import Navbar from '../componants/Navbar'
-import bgImage from "../assets/background/bg1.jpg"
+import bgImage from "../assets/background/bg1.webp"
 import Profile_Form from '../componants/popup/Profile_Form'
 
 function Home() {

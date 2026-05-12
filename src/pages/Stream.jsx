@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import Navbar from '../componants/Navbar'
-import bgImage from "../assets/background/bg2.jpg"
+import bgImage from "../assets/background/bg2.webp"
 import Upload from '../componants/popup/Upload'
 import Window from '../componants/Window'
 import { IoIosMic, IoIosMicOff } from "react-icons/io"
